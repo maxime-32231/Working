@@ -1,0 +1,171 @@
+-- Maxi Hub Script - Eén bestand, voor executors
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local mouse = player:GetMouse()
+
+local originalPos = nil
+local tpUpPressed = false
+local floatingPlatform = nil
+
+-- GUI: Key Input
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "KeySystemGui"
+screenGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 300, 0, 150)
+frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+
+local textBox = Instance.new("TextBox", frame)
+textBox.Size = UDim2.new(1, -20, 0, 40)
+textBox.Position = UDim2.new(0, 10, 0, 10)
+textBox.PlaceholderText = "Enter Key"
+textBox.Text = ""
+textBox.TextSize = 18
+textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local checkKey = Instance.new("TextButton", frame)
+checkKey.Size = UDim2.new(0.5, -15, 0, 40)
+checkKey.Position = UDim2.new(0, 10, 0, 60)
+checkKey.Text = "Check Key"
+checkKey.TextSize = 18
+checkKey.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+checkKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local getKey = Instance.new("TextButton", frame)
+getKey.Size = UDim2.new(0.5, -15, 0, 40)
+getKey.Position = UDim2.new(0.5, 5, 0, 60)
+getKey.Text = "Get Key"
+getKey.TextSize = 18
+getKey.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+getKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+getKey.MouseButton1Click:Connect(function()
+	setclipboard("https://discord.gg/jsHnAReE2R")
+end)
+
+local function showError(msg)
+	local popup = Instance.new("TextLabel", screenGui)
+	popup.Text = msg
+	popup.Size = UDim2.new(0, 200, 0, 50)
+	popup.Position = UDim2.new(0.5, -100, 0.4, -25)
+	popup.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	popup.TextColor3 = Color3.fromRGB(255, 255, 255)
+	popup.TextScaled = true
+	popup.BackgroundTransparency = 0.3
+	game:GetService("Debris"):AddItem(popup, 2)
+end
+
+-- Hub GUI
+local hubGui = Instance.new("ScreenGui", player.PlayerGui)
+hubGui.Name = "HubGui"
+hubGui.Enabled = false
+hubGui.ResetOnSpawn = false
+
+local hubFrame = Instance.new("Frame", hubGui)
+hubFrame.Size = UDim2.new(0, 200, 0, 150)
+hubFrame.Position = UDim2.new(0.1, 0, 0.3, 0)
+hubFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+hubFrame.BorderSizePixel = 0
+
+local tpUp = Instance.new("TextButton", hubFrame)
+tpUp.Size = UDim2.new(1, -20, 0, 40)
+tpUp.Position = UDim2.new(0, 10, 0, 10)
+tpUp.Text = "TP Up"
+tpUp.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+tpUp.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local tpDown = Instance.new("TextButton", hubFrame)
+tpDown.Size = UDim2.new(1, -20, 0, 40)
+tpDown.Position = UDim2.new(0, 10, 0, 60)
+tpDown.Text = "TP Down"
+tpDown.BackgroundColor3 = Color3.fromRGB(200, 100, 0)
+tpDown.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpDown.AutoButtonColor = false
+
+local closeBtn = Instance.new("TextButton", hubFrame)
+closeBtn.Size = UDim2.new(1, -20, 0, 30)
+closeBtn.Position = UDim2.new(0, 10, 0, 110)
+closeBtn.Text = "Close"
+closeBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local toggleButton = Instance.new("TextButton", player.PlayerGui)
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 10, 0.8, 0)
+toggleButton.Text = "O"
+toggleButton.TextScaled = true
+toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleButton.Visible = false
+toggleButton.ZIndex = 10
+
+toggleButton.MouseButton1Click:Connect(function()
+	hubGui.Enabled = true
+	toggleButton.Visible = false
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	hubGui.Enabled = false
+	toggleButton.Visible = true
+end)
+
+-- TP Up Logic (met platform)
+tpUp.MouseButton1Click:Connect(function()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if hrp then
+		originalPos = hrp.Position
+		local newY = originalPos + Vector3.new(0, 50, 0)
+		hrp.CFrame = CFrame.new(newY)
+
+		-- Maak onzichtbaar platform
+		if not floatingPlatform then
+			floatingPlatform = Instance.new("Part", workspace)
+			floatingPlatform.Size = Vector3.new(20, 1, 20)
+			floatingPlatform.Anchored = true
+			floatingPlatform.Transparency = 1
+			floatingPlatform.CanCollide = true
+			floatingPlatform.Position = newY - Vector3.new(0, 3, 0)
+		end
+		tpUpPressed = true
+	end
+end)
+
+-- TP Down Logic (verwijder platform)
+tpDown.MouseButton1Click:Connect(function()
+	if tpUpPressed and originalPos then
+		local char = player.Character or player.CharacterAdded:Wait()
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			hrp.CFrame = CFrame.new(originalPos)
+			tpUpPressed = false
+
+			if floatingPlatform then
+				floatingPlatform:Destroy()
+				floatingPlatform = nil
+			end
+		end
+	end
+end)
+
+-- Check key logic
+checkKey.MouseButton1Click:Connect(function()
+	local input = string.lower(textBox.Text)
+	if input == "maxi hub" then
+		screenGui.Enabled = false
+		hubGui.Enabled = true
+	else
+		showError("Wrong Key")
+	end
+end)
+
+-- Basic Anti-Detect: verstopt omgeving iets
+pcall(function()
+	if getfenv then
+		setfenv(1, getfenv(0))
+	end
+end)
