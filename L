@@ -1,4 +1,4 @@
--- Maxi Hub Script - Eén bestand, voor executors
+-- Maxi Hub Script - Extra groot luchtplatform versie
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -113,7 +113,7 @@ closeBtn.MouseButton1Click:Connect(function()
 	toggleButton.Visible = true
 end)
 
--- TP Up Logic (met platform)
+-- TP Up Logic (extra groot platform)
 tpUp.MouseButton1Click:Connect(function()
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -122,14 +122,15 @@ tpUp.MouseButton1Click:Connect(function()
 		local newY = originalPos + Vector3.new(0, 50, 0)
 		hrp.CFrame = CFrame.new(newY)
 
-		-- Maak onzichtbaar platform
+		-- Maak groot onzichtbaar platform
 		if not floatingPlatform then
 			floatingPlatform = Instance.new("Part", workspace)
-			floatingPlatform.Size = Vector3.new(20, 1, 20)
+			floatingPlatform.Size = Vector3.new(500, 5, 500)
 			floatingPlatform.Anchored = true
 			floatingPlatform.Transparency = 1
 			floatingPlatform.CanCollide = true
 			floatingPlatform.Position = newY - Vector3.new(0, 3, 0)
+			floatingPlatform.Name = "MaxiFloatingPlatform"
 		end
 		tpUpPressed = true
 	end
@@ -163,7 +164,7 @@ checkKey.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Basic Anti-Detect: verstopt omgeving iets
+-- Basic Anti-Detect
 pcall(function()
 	if getfenv then
 		setfenv(1, getfenv(0))
